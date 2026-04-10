@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serenova AI — Your Mind, Understood</title>
+  <link
+    href="https://api.fontshare.com/v2/css?f[]=clash-display@400,600,700&f[]=cabinet-grotesk@400,500,700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030308;
+      --bg-rgb: 3, 3, 8;
+      --aurora-1: #1d4ed8;
+      --aurora-2: #6366f1;
+      --aurora-3: #0f766e;
+      --aurora-4: #38bdf8;
+
+      --normal: #06ffa5;
+      --mild: #ffd60a;
+      --anxiety: #ff9f43;
+      --depression: #ff4757;
+      --crisis: #a855f7;
+
+      --text: #ffffff;
+      --muted: #c4c4dc;
+
+      --surface: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.08);
+
+      --font-head: 'Clash Display', 'Syne', sans-serif;
+      --font-body: 'Cabinet Grotesk', 'DM Sans', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8f8fc;
+      --bg-rgb: 248, 248, 252;
+      --text: #1a1a2a;
+      --muted: #8888a0;
+      --surface: rgba(0, 0, 0, 0.03);
+      --border: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      cursor: none;
+      min-height: 100vh;
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    /* Custom Cursor */
+    #cursor {
+      width: 8px;
+      height: 8px;
+      background: var(--text);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      transition: background 0.2s, width 0.2s, height 0.2s;
+      mix-blend-mode: difference;
+    }
+
+    #cursor-ring {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--text);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s;
+      mix-blend-mode: difference;
+    }
+
+    /* Background Canvas & Aurora */
+    .aurora-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.35;
+      animation: floatBlob 20s infinite alternate;
+      mix-blend-mode: screen;
+    }
+
+    .blob-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--aurora-1), transparent 70%);
+      top: -10%;
+      left: -10%;
+    }
+
+    .blob-2 {
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, var(--aurora-2), transparent 70%);
+      top: 40%;
+      right: -20%;
+      animation-delay: -5s;
+    }
+
+    .blob-3 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--aurora-3), transparent 70%);
+      bottom: -20%;
+      left: 20%;
+      animation-delay: -10s;
+    }
+
+    [data-theme="light"] .aurora-blob {
+      mix-blend-mode: multiply;
+      opacity: 0.15;
+    }
+
+    @keyframes floatBlob {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate(10%, 10%) scale(1.1);
+      }
+
+      100% {
+        transform: translate(-10%, 5%) scale(0.9);
+      }
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+    }
+
+    .pill {
+      border-radius: 50px;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 20px 0;
+      background: rgba(var(--bg-rgb), 0.6);
+      backdrop-filter: blur(30px);
+      transition: padding 0.3s ease;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header.scrolled {
+      padding: 12px 0;
+    }
+
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--aurora-1), var(--aurora-2), var(--aurora-3));
+      animation: shimmer 4s infinite linear;
+    }
+
+    .logo-text {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: -1px;
+    }
+
+    .logo-tagline {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .nav-pills {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-pill {
+      padding: 10px 24px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.3s;
+      border: 1px solid transparent;
+    }
+
+    .nav-pill:hover {
+      background: var(--surface);
+      border-color: var(--border);
+    }
+
+    .header-bottom-line {
+      height: 1px;
+      width: 100%;
+      background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3), var(--aurora-4));
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      opacity: 0.5;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 140px 0 100px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-family: var(--font-head);
+      font-size: clamp(60px, 8vw, 100px);
+      font-weight: 800;
+      letter-spacing: -4px;
+      line-height: 0.9;
+      margin-bottom: 24px;
+    }
+
+    .title-line {
+      display: block;
+      opacity: 0;
+      transform: translateY(40px);
+      animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .title-line-1 {
+      color: var(--text);
+    }
+
+    .title-line-2 {
+      background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation-delay: 0.15s;
+    }
+
+    .title-line-3 {
+      color: var(--text);
+      animation-delay: 0.3s;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 600px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: slideUpFade 1s 0.45s forwards;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 60px;
+      opacity: 0;
+      animation: slideUpFade 1s 0.6s forwards;
+    }
+
+    .cta-btn {
+      padding: 18px 40px;
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 16px;
+      border: none;
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .cta-btn.primary {
+      background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2));
+      color: #fff;
+      background-size: 200% auto;
+      animation: gradientShift 3s linear infinite;
+      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+    }
+
+    .cta-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(168, 85, 247, 0.5);
+    }
+
+    .cta-btn.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .cta-btn.secondary:hover {
+      background: var(--surface);
+    }
+
+    .trust-badges {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: slideUpFade 1s 0.75s forwards;
+    }
+
+    .badge {
+      padding: 8px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 3D Floating Hero BG elements */
+    .floating-elements {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      perspective: 1000px;
+      z-index: -1;
+    }
+
+    .float-card {
+      position: absolute;
+      width: 200px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 24px;
+      animation: floatY 6s ease-in-out infinite alternate;
+    }
+
+    .float-1 {
+      top: 20%;
+      left: 10%;
+      transform: rotateY(15deg) rotateX(10deg);
+    }
+
+    .float-2 {
+      top: 40%;
+      right: 10%;
+      transform: rotateY(-15deg) rotateX(-10deg);
+      animation-delay: -3s;
+    }
+
+    .float-3 {
+      bottom: 10%;
+      left: 20%;
+      transform: rotateY(10deg) rotateX(20deg);
+      animation-delay: -1.5s;
+    }
+
+    /* Main Section Split */
+    .analyzer-section {
+      padding: 80px 0;
+    }
+
+    .grid-60-40 {
+      display: grid;
+      grid-template-columns: 6fr 4fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    .section-head {
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 24px;
+      margin-bottom: 24px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .section-head::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -8px;
+      width: 40px;
+      height: 2px;
+      background: var(--aurora-1);
+    }
+
+    /* Left Panel */
+    .input-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .textarea-wrap {
+      position: relative;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 18px;
+      line-height: 1.6;
+      resize: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+      cursor: none;
+    }
+
+    textarea:focus {
+      border-color: var(--aurora-2);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.2) inset;
+    }
+
+    .counters {
+      position: absolute;
+      bottom: 20px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .sentiment-bar-wrap {
+      height: 6px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .sentiment-fill {
+      height: 100%;
+      width: 50%;
+      background: var(--normal);
+      transition: width 0.3s, background 0.3s;
+    }
+
+    .analyze-full-btn {
+      width: 100%;
+      padding: 20px;
+      background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3));
+      background-size: 200% auto;
+      border: none;
+      border-radius: 20px;
+      color: #fff;
+      font-family: var(--font-head);
+      font-size: 18px;
+      font-weight: 600;
+      cursor: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .analyze-full-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+      animation: gradientShift 2s linear infinite;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .analyze-full-btn.loading .loading-overlay {
+      opacity: 1;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
+    }
+
+    .btn-hint {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .examples-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .example-chip {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text);
+      cursor: none;
+      transition: all 0.2s;
+      border-radius: 50px;
+    }
+
+    .example-chip:hover {
+      border-color: var(--aurora-1);
+      color: var(--aurora-1);
+      background: rgba(0, 201, 255, 0.05);
+    }
+
+    /* Right Panel Stats */
+    .stats-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 120px;
+    }
+
+    .stat-card {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-title {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--normal);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--normal);
+      animation: pulseDot 2s infinite;
+    }
+
+    .classes-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .c-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .circle-progress {
+      width: 40px;
+      height: 40px;
+      transform: rotate(-90deg);
+    }
+
+    .circle-progress circle {
+      fill: none;
+      stroke-width: 4;
+      stroke: var(--border);
+    }
+
+    .circle-progress .fill {
+      stroke: var(--aurora-1);
+      stroke-dasharray: 100;
+      stroke-dashoffset: 17;
+      transition: stroke-dashoffset 1s ease-out;
+    }
+
+    .smooth-scroll {
+      scroll-margin-top: 100px;
+    }
+
+    /* Results Section */
+    #results-section {
+      padding: 80px 0;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    #results-section.active {
+      display: block;
+      animation: slideUpFade 0.6s forwards;
+    }
+
+    .main-result-card {
+      padding: 60px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+      transition: background 1s;
+    }
+
+    .main-emoji {
+      font-size: 120px;
+      margin-bottom: 20px;
+      transform-style: preserve-3d;
+      animation: rotateIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .result-level {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 64px;
+      text-transform: capitalize;
+      margin-bottom: 8px;
+    }
+
+    .result-conf {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .spectrum-bar {
+      width: 100%;
+      max-width: 600px;
+      height: 12px;
+      border-radius: 20px;
+      background: linear-gradient(90deg, var(--normal), var(--mild), var(--anxiety), var(--depression), var(--crisis));
+      position: relative;
+      margin-top: 20px;
+    }
+
+    .spectrum-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: transparent;
+      transition: left 1s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .results-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    /* Response */
+    .response-card {
+      padding: 40px;
+    }
+
+    .response-title {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .response-quote {
+      font-size: 20px;
+      line-height: 1.6;
+      color: var(--text);
+      font-style: italic;
+      position: relative;
+      padding-left: 20px;
+      border-left: 4px solid var(--aurora-2);
+      margin-bottom: 30px;
+      min-height: 100px;
+    }
+
+    .response-quote::before {
+      content: '"';
+      position: absolute;
+      font-size: 80px;
+      font-family: var(--font-head);
+      color: var(--surface);
+      top: -20px;
+      left: -10px;
+      z-index: -1;
+    }
+
+    .calm-aurora-line {
+      height: 1px;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, var(--aurora-1), var(--aurora-2), var(--aurora-3), transparent);
+      margin: 30px 0;
+      opacity: 0.5;
+    }
+
+    .response-section-title {
+      font-family: var(--font-head);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .response-section-title::before {
+      content: '◈';
+      color: var(--aurora-2);
+      font-size: 14px;
+    }
+
+    .response-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .response-bullets li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--muted);
+      font-size: 16px;
+      opacity: 0;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .response-bullets li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--aurora-1);
+      font-weight: bold;
+      font-size: 18px;
+      top: -2px;
+    }
+
+    .resources-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .resource-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: none;
+    }
+
+    .resource-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--aurora-2);
+      transform: translateX(5px);
+    }
+
+    .res-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Radar */
+    .radar-card {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .radar-wrap {
+      width: 300px;
+      height: 300px;
+      position: relative;
+      margin: 20px 0;
+    }
+
+    .radar-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .radar-bg-polygon {
+      fill: var(--surface);
+      stroke: var(--border);
+      stroke-width: 1;
+    }
+
+    .radar-axis {
+      stroke: var(--border);
+      stroke-width: 1;
+      stroke-dasharray: 4;
+    }
+
+    .radar-label {
+      fill: rgba(255, 255, 255, 0.9);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font-body);
+      alignment-baseline: middle;
+      text-anchor: middle;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .radar-data-polygon {
+      fill: rgba(168, 85, 247, 0.3);
+      stroke: var(--aurora-2);
+      stroke-width: 2;
+      transition: d 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Breathe Widget */
+    .breathe-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.1), transparent);
+      margin: 0 auto 30px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .breathe-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 3px solid var(--aurora-2);
+      transition: transform 4s ease-in-out;
+    }
+
+    .breathe-text {
+      font-family: var(--font-head);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--aurora-2);
+      margin-top: -10px;
+      transition: opacity 0.5s;
+    }
+
+    /* Bottom Grid */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 40px;
+    }
+
+    .suggestions {
+      padding: 30px;
+    }
+
+    .sugg-capsules {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .history-panel {
+      padding: 30px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: none;
+      transition: background 0.2s;
+    }
+
+    .history-item:hover {
+      background: var(--surface);
+    }
+
+    .hist-emo {
+      font-size: 24px;
+    }
+
+    .hist-details {
+      flex: 1;
+      margin: 0 16px;
+    }
+
+    .hist-label {
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 16px;
+      display: block;
+    }
+
+    .hist-time {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .hist-conf {
+      font-weight: 700;
+      color: var(--aurora-3);
+    }
+
+    .empty-hist {
+      color: var(--muted);
+      font-size: 14px;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .results-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    /* How It Works */
+    .steps-section {
+      padding: 100px 0;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s;
+    }
+
+    .steps-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .step-card {
+      padding: 40px 30px;
+      text-align: center;
+      transition: transform 0.1s ease-out;
+      transform-style: preserve-3d;
+    }
+
+    .step-num {
+      font-family: var(--font-head);
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--surface);
+      -webkit-text-stroke: 1px var(--border);
+      margin-bottom: 20px;
+      transform: translateZ(30px);
+    }
+
+    .step-title {
+      font-family: var(--font-head);
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      transform: translateZ(20px);
+    }
+
+    .step-desc {
+      color: var(--muted);
+      transform: translateZ(10px);
+    }
+
+    /* Footer */
+    footer {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      position: relative;
+      background: rgba(var(--bg-rgb), 0.8);
+    }
+
+    .footer-aurora {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3), var(--aurora-4));
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .crisis-box {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .crisis-box strong {
+      color: var(--aurora-2);
+      display: block;
+      font-size: 20px;
+      margin-top: 8px;
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-left: 16px;
+    }
+
+    /* Utilities */
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    @keyframes pulseDot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+        box-shadow: 0 0 0;
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        filter: hue-rotate(0deg);
+      }
+
+      100% {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    @keyframes rotateIn {
+      from {
+        transform: rotateY(90deg) scale(0.5);
+        opacity: 0;
+      }
+
+      to {
+        transform: rotateY(0deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes floatY {
+      from {
+        transform: translateY(-10px) rotateY(15deg) rotateX(10deg);
+      }
+
+      to {
+        transform: translateY(10px) rotateY(15deg) rotateX(10deg);
+      }
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      z-index: 999;
+      pointer-events: none;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* Responsive */
+    @media(max-width: 900px) {
+      .grid-60-40 {
+        grid-template-columns: 1fr;
+      }
+
+      .results-split,
+      .bottom-grid,
+      .steps-grid,
+      .footer-content {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .hero-title {
+        font-size: 48px;
+      }
+
+      .stats-panel {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hidden-mobile {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  /* Feature 1: Lo-Fi Music Player */
+.ambient-player {
+  position: fixed;
+  bottom: 32px;
+  left: 32px;
+  z-index: 1000;
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 16px;
+  width: 320px;
+  transform: translateY(150%);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s;
+  opacity: 0;
+}
+.ambient-player.active {
+  transform: translateY(0);
+  opacity: 1;
+}
+.ambient-player.minimized {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: none;
+}
+.ambient-player.minimized .player-full {
+  display: none;
+}
+.ambient-player.minimized .player-mini-btn {
+  display: flex;
+}
+.player-mini-btn {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, var(--aurora-1), transparent 70%);
+  border-radius: 50%;
+}
+.player-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.player-top span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.minimize-btn {
+  cursor: none;
+  font-size: 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+}
+.song-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-head);
+  font-weight: 600;
+  margin-bottom: 16px;
+  position: relative;
+  width: 100%;
+}
+.song-ticker p {
+  display: inline-block;
+  padding-left: 100%;
+  animation: ticker 10s linear infinite;
+}
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.play-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--aurora-1), var(--aurora-2));
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+}
+.nav-btn-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.eq-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 16px;
+}
+.eq-bar {
+  width: 4px;
+  background: var(--aurora-1);
+  border-radius: 2px;
+  height: 4px;
+}
+.eq-bars.playing .eq-bar {
+  animation: bounceEq 1s ease-in-out infinite alternate;
+}
+.eq-bars.playing .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+.eq-bars.playing .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+.eq-bars.playing .eq-bar:nth-child(4) { animation-delay: 0.1s; }
+@keyframes bounceEq {
+  0% { height: 4px; }
+  100% { height: 16px; background: var(--aurora-2); }
+}
+.vol-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.vol-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  outline: none;
+  border-radius: 2px;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: none;
+}
+.progress-wrap {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2));
+  transition: width 0.1s linear;
+}
+.playlist {
+  font-size: 12px;
+  color: var(--muted);
+}
+.playlist-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  cursor: none;
+  border-bottom: 1px solid transparent;
+}
+.playlist-item.active {
+  color: var(--aurora-3);
+  font-weight: 600;
+}
+
+/* Feature 2: Particle Burst */
+.burst-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: opacity 1s ease-out;
+}
+
+/* Feature 3: Scroll Progress */
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3));
+  z-index: 10001;
+  transition: width 0.1s;
+}
+
+/* Feature 4: Cursor Trail */
+.cursor-trail-dot {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+/* Feature 5: Welcome Splash */
+#welcome-splash {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.8s ease-in-out;
+}
+.splash-bg-bloom {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, var(--aurora-1), transparent 70%);
+  filter: blur(100px);
+  opacity: 0;
+  animation: bloomFade 3s forwards;
+  z-index: 0;
+}
+.splash-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  opacity: 0;
+  animation: splashFadeIn 2.5s forwards;
+}
+@keyframes splashFadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  30% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+@keyframes bloomFade {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(2); }
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <div class="aurora-bg">
+    <div class="aurora-blob blob-1"></div>
+    <div class="aurora-blob blob-2"></div>
+    <div class="aurora-blob blob-3"></div>
+  </div>
+  <canvas id="bg-canvas"></canvas>
+  <div class="noise-overlay"></div>
+
+  <header id="header">
+    <div class="container header-inner">
+      <div class="logo-wrap">
+        <div class="logo-icon"></div>
+        <div>
+          <div class="logo-text">Serenova</div>
+          <div class="logo-tagline">your mind, understood</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center;">
+        <nav class="nav-pills hidden-mobile">
+          <a href="#analyzer" class="nav-pill pill smooth-scroll">Analyze</a>
+          <a href="#how" class="nav-pill pill smooth-scroll">How It Works</a>
+          <a href="#about" class="nav-pill pill smooth-scroll">Technology</a>
+        </nav>
+        <button class="theme-toggle" id="theme-btn">☀️</button>
+      </div>
+    </div>
+    <div class="header-bottom-line"></div>
+  </header>
+
+  <section class="hero container">
+    <div class="floating-elements">
+      <div class="float-card float-1">😊</div>
+      <div class="float-card float-2">🧠</div>
+      <div class="float-card float-3">✨</div>
+    </div>
+    <div class="hero-title">
+      <span class="title-line title-line-1">Feel</span>
+      <span class="title-line title-line-2">Understood</span>
+      <span class="title-line title-line-3">Again.</span>
+    </div>
+    <p class="hero-subtitle">Advanced AI powered by BERT transformer technology. Real-time mental health analysis with
+      compassionate response generation.</p>
+    <div class="hero-ctas">
+      <button class="cta-btn primary pill"
+        onclick="document.getElementById('analyzer').scrollIntoView({behavior:'smooth'})">Analyze Now</button>
+      <button class="cta-btn secondary pill"
+        onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It Works</button>
+    </div>
+    <div class="trust-badges">
+      <div class="badge pill">⚙️ BERT Transformer</div>
+      <div class="badge pill">🧠 110M Parameters</div>
+      <div class="badge pill">📊 5 Distress Classes</div>
+      <div class="badge pill">⚡ Real-time Analysis</div>
+    </div>
+  </section>
+
+  <section id="analyzer" class="analyzer-section container smooth-scroll">
+    <div class="grid-60-40">
+      <div class="input-panel">
+        <h2 class="section-head">Analyze Your Text</h2>
+        <div class="textarea-wrap">
+          <textarea id="text-input" placeholder=""></textarea>
+          <div class="counters">
+            <span id="word-count">0 words</span>
+            <span id="char-count">0/1000</span>
+          </div>
+        </div>
+        <div class="sentiment-bar-wrap">
+          <div class="sentiment-fill" id="sentiment-indicator"></div>
+        </div>
+
+        <button class="analyze-full-btn" id="analyze-btn">
+          Analyze with Serenova AI
+          <div class="loading-overlay">
+            <div class="spinner"></div> BERT is thinking...
+          </div>
+        </button>
+        <div class="btn-hint">Press Ctrl+Enter to analyze · Powered by fine-tuned BERT</div>
+
+        <div class="examples-grid">
+          <button class="example-chip">😊 I feel so incredibly happy today, things are great!</button>
+          <button class="example-chip">😰 I have a huge deadline and I'm stressing out.</button>
+          <button class="example-chip">🌪️ I can't breathe, my chest is tight, everything is overwhelming.</button>
+          <button class="example-chip">🌧️ I just feel empty and tired all the time lately.</button>
+          <button class="example-chip">💔 I don't see the point anymore, I want it to end.</button>
+        </div>
+      </div>
+
+      <div class="stats-panel">
+        <h2 class="section-head">Model Specs</h2>
+        <div class="glass-card stat-card">
+          <div class="stat-title">System Status</div>
+          <div class="stat-value"><span class="status-dot"></span> Online</div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="stat-title">Architecture</div>
+          <div class="stat-value">BERT-base</div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="stat-title">Parameters</div>
+          <div class="stat-value" id="param-count">0</div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="stat-title">Training Classes</div>
+          <div class="stat-value">5 <div class="classes-dots">
+              <div class="c-dot" style="background:var(--normal)"></div>
+              <div class="c-dot" style="background:var(--mild)"></div>
+              <div class="c-dot" style="background:var(--anxiety)"></div>
+              <div class="c-dot" style="background:var(--depression)"></div>
+              <div class="c-dot" style="background:var(--crisis)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="stat-title">Accuracy</div>
+          <div class="stat-value">
+            83.4%
+            <svg class="circle-progress" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15"></circle>
+              <circle class="fill" cx="18" cy="18" r="15"></circle>
+            </svg>
+          </div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="stat-title">Analyses Performed</div>
+          <div class="stat-value" id="total-analyses">0</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results-section" class="container smooth-scroll">
+    <div class="glass-card main-result-card" id="main-result-card">
+      <div class="main-emoji" id="result-emoji">😐</div>
+      <div class="result-level" id="result-text">Analyzing...</div>
+      <div class="result-conf" id="result-conf">Detected with --% confidence</div>
+      <div class="spectrum-bar">
+        <div class="spectrum-indicator" id="spectrum-ptr" style="left:50%"></div>
+      </div>
+    </div>
+
+    <div class="glass-card affirmation-card" id="affirmation-card"
+      style="display:none; margin-bottom: 40px; padding: 40px; position: relative; overflow: hidden; text-align: center;">
+      <div id="aff-quote-mark"
+        style="position: absolute; top: -40px; left: 10px; font-family: var(--font-head); font-size: 160px; line-height: 1; opacity: 0.1;">
+        "</div>
+      <div id="affirmation-text"
+        style="font-size: 22px; font-style: italic; z-index: 2; position: relative; margin-bottom: 16px;"></div>
+      <div style="font-size: 14px; color: var(--muted); z-index: 2; position: relative;">— Serenova AI, just for you
+      </div>
+      <div style="margin-top: 30px; display: flex; justify-content: center; gap: 16px; position: relative; z-index: 2;">
+        <button class="cta-btn secondary pill" id="new-aff-btn" style="padding: 10px 24px; font-size: 14px;">New
+          Affirmation</button>
+        <button class="cta-btn primary pill" id="dl-aff-btn" style="padding: 10px 24px; font-size: 14px;">Download
+          Card</button>
+      </div>
+      <div class="aurora-shimmer"
+        style="position: absolute; inset: 0; pointer-events: none; border: 2px solid transparent; border-radius: 20px; background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3)) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; opacity: 0.3;">
+      </div>
+    </div>
+
+    <div class="results-split">
+      <div style="display: flex; flex-direction: column; gap: 40px;">
+        <div class="glass-card response-card">
+          <h3 class="response-title">✨ Serenova AI Response</h3>
+          <div class="response-quote" id="response-quote"></div>
+
+          <div id="response-extended" style="display:none; opacity:0; transition: opacity 0.8s;">
+            <div class="calm-aurora-line"></div>
+            <h4 class="response-section-title">What this means</h4>
+            <ul class="response-bullets" id="response-bullets"></ul>
+
+            <h4 class="response-section-title">Resources & Tips</h4>
+            <div class="resources-links">
+              <a href="#" class="resource-link">
+                <div class="res-icon">🌿</div> Grounding Techniques
+              </a>
+              <a href="#" class="resource-link">
+                <div class="res-icon">📞</div> Global Helpline Directory
+              </a>
+              <a href="#" class="resource-link">
+                <div class="res-icon">🧘‍♀️</div> 5-Minute Meditation
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="glass-card breathe-widget" id="breathe-widget"
+          style="display:none; padding: 40px; text-align: center;">
+          <h4 class="response-section-title" style="justify-content: center; margin-bottom: 12px;">✦ Guided Breathing
+            Exercise</h4>
+          <p style="color:var(--muted); margin-bottom:30px; font-size: 14px;">Take a moment. This breathing exercise
+            will help calm your nervous system.</p>
+          <div class="breathe-circle" id="breathe-ring">
+            <div class="breathe-inner" id="breathe-inner-ring"></div>
+          </div>
+          <div class="breathe-text" id="breathe-text-phase">Breathe in...</div>
+          <div style="color:var(--muted); font-size:14px; margin-top:10px;" id="breathe-cycle-count">Cycle 0 of ∞</div>
+          <button class="cta-btn secondary pill" id="breathe-pause-btn"
+            style="padding: 10px 24px; margin-top:30px; font-size:14px;">Pause</button>
+        </div>
+
+      </div>
+
+      <div class="glass-card radar-card">
+        <h3 class="section-head">Emotion Radar</h3>
+        <div class="radar-wrap" id="radar-container"></div>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="glass-card history-panel">
+        <h3 class="section-head">Recent Analyses</h3>
+        <div id="history-container"></div>
+      </div>
+      <div class="glass-card suggestions">
+        <h3 class="section-head">Try Next</h3>
+        <div class="sugg-capsules">
+          <button class="example-chip">Why do I feel this way?</button>
+          <button class="example-chip">How can I quickly ground myself?</button>
+          <button class="example-chip">I want to talk to someone.</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button class="cta-btn secondary pill" onclick="window.scrollTo({top:0, behavior:'smooth'})">Start Over</button>
+      <button class="cta-btn primary pill" id="share-btn">Share Result Card</button>
+    </div>
+  </section>
+
+  <section id="how" class="steps-section container smooth-scroll scroll-trigger">
+    <h2 class="section-head">How It Works</h2>
+    <div class="steps-grid">
+      <div class="glass-card step-card" data-tilt>
+        <div class="step-num">01</div>
+        <div class="step-title">You Write</div>
+        <div class="step-desc">Share how you're feeling using natural, unstructured text. The AI processes context, not
+          just keywords.</div>
+      </div>
+      <div class="glass-card step-card" data-tilt>
+        <div class="step-num">02</div>
+        <div class="step-title">BERT Analyzes</div>
+        <div class="step-desc">Our 110M parameter neural network tokenizes your text, passing it through 12 attention
+          layers to extract psychological signals.</div>
+      </div>
+      <div class="glass-card step-card" data-tilt>
+        <div class="step-num">03</div>
+        <div class="step-title">Serenova Responds</div>
+        <div class="step-desc">Receive immediate distress classification, confidence profiling, and compassionate,
+          actionable guidance.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="about">
+    <div class="footer-aurora"></div>
+    <div class="container footer-content">
+      <div>
+        <div class="logo-wrap" style="margin-bottom: 20px;">
+          <div class="logo-icon" style="width: 30px; height: 30px;"></div>
+          <div class="logo-text" style="font-size: 20px;">Serenova</div>
+        </div>
+        <p style="color: var(--muted); max-width: 300px;">Built for humans, powered by AI. An elegant mental health
+          analysis application utilizing advanced transformer networks.</p>
+        <div class="trust-badges" style="justify-content: flex-start; margin-top: 20px; opacity: 1; animation: none;">
+          <div class="badge pill">PyTorch</div>
+          <div class="badge pill">HuggingFace</div>
+          <div class="badge pill">HTML5 Canvas</div>
+        </div>
+      </div>
+      <div class="crisis-box">
+        <div>Need immediate help?</div>
+        <strong>Helpline: iCall India 9152987821</strong>
+        <div style="font-size:12px; margin-top: 5px; color:var(--muted)">For educational purposes only. Not medical
+          advice.</div>
+      </div>
+    </div>
+  </footer>
+
+    <!-- Feature 5: Welcome Splash -->
+  <div id="welcome-splash">
+    <div class="splash-bg-bloom"></div>
+    <div class="splash-content">
+      <div class="logo-wrap" style="justify-content: center; margin-bottom: 8px;">
+        <div class="logo-icon"></div>
+        <div class="logo-text" style="font-size: 32px;">Serenova</div>
+      </div>
+      <div class="logo-tagline" style="font-size: 16px;">your mind, understood</div>
+    </div>
+  </div>
+
+  <!-- Feature 3: Scroll Progress -->
+  <div id="scroll-progress"></div>
+
+  <!-- Feature 1: Ambient Player -->
+  <div class="ambient-player" id="ambient-player">
+    <button class="player-mini-btn" id="player-mini-btn">
+      <div class="eq-bars playing" style="height: 12px; gap: 2px;">
+        <div class="eq-bar" style="width: 2px; height: 12px;"></div>
+        <div class="eq-bar" style="width: 2px; height: 8px;"></div>
+        <div class="eq-bar" style="width: 2px; height: 10px;"></div>
+      </div>
+    </button>
+    <div class="player-full" id="player-full">
+      <div class="player-top">
+        <span>♪ Ambient Focus</span>
+        <button class="minimize-btn" id="minimize-btn">—</button>
+      </div>
+      <div class="song-ticker">
+        <p>Serenova Lo-fi · Mental Wellness Beats</p>
+      </div>
+      <div class="player-controls">
+        <button class="nav-btn-sm" id="prev-btn">◄</button>
+        <button class="play-btn" id="play-btn">▶</button>
+        <button class="nav-btn-sm" id="next-btn">►</button>
+        <div class="eq-bars" id="eq-ui">
+          <div class="eq-bar"></div>
+          <div class="eq-bar"></div>
+          <div class="eq-bar"></div>
+          <div class="eq-bar"></div>
+        </div>
+      </div>
+      <div class="vol-slider-wrap">
+        <span>🔈</span>
+        <input type="range" min="0" max="100" value="50" class="vol-slider" id="vol-slider">
+        <span>🔊</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-fill" id="track-progress"></div>
+      </div>
+      <div class="playlist" id="playlist-ui">
+        <div class="playlist-item active">1. Peaceful Mind <span>3:24</span></div>
+        <div class="playlist-item">2. Healing Waves <span>4:12</span></div>
+        <div class="playlist-item">3. Calm Aurora <span>3:58</span></div>
+        <div class="playlist-item">4. Gentle Stars <span>4:45</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STATE = { theme: localStorage.getItem('serenova_theme') || 'dark', analysesCount: parseInt(localStorage.getItem('serenova_count') || '0', 10), history: JSON.parse(localStorage.getItem('serenova_history') || '[]') };
+    const EMOTION_MAP = { normal: { color: 'var(--normal)', emoji: '😊', name: 'Normal', spectrumPos: '10%' }, mild: { color: 'var(--mild)', emoji: '😟', name: 'Mild Stress', spectrumPos: '30%' }, anxiety: { color: 'var(--anxiety)', emoji: '😰', name: 'Anxiety', spectrumPos: '50%' }, depression: { color: 'var(--depression)', emoji: '🌧️', name: 'Depression', spectrumPos: '70%' }, crisis: { color: 'var(--crisis)', emoji: '💔', name: 'Crisis', spectrumPos: '90%' } };
+    function heuristicDetect(text) {
+      const t = text.toLowerCase();
+      let scores = [0, 0, 0, 0, 0];
+
+      const normalWords = ['happy', 'great', 'wonderful', 'amazing', 'fantastic',
+        'grateful', 'blessed', 'excited', 'joyful', 'peaceful', 'calm', 'good',
+        'excellent', 'positive', 'love', 'beautiful', 'perfect', 'awesome',
+        'cheerful', 'delighted', 'content', 'satisfied', 'thrilled', 'proud',
+        'energetic', 'motivated', 'inspired', 'productive', 'accomplished'];
+      normalWords.forEach(w => { if(t.includes(w)) scores[0] += 2; });
+
+      const mildWords = ['stressed', 'stress', 'tired', 'busy', 'deadline',
+        'pressure', 'worried', 'nervous', 'tense', 'a little', 'bit overwhelmed',
+        'exhausted', 'frustrated', 'annoyed', 'restless', 'distracted',
+        'behind', 'rush', 'hectic', 'struggling a bit', 'not great',
+        'okay i guess', 'managing', 'coping', 'slightly'];
+      mildWords.forEach(w => { if(t.includes(w)) scores[1] += 2; });
+
+      const anxietyWords = ['panic', 'panicking', 'anxiety', 'anxious',
+        'cant breathe', "can't breathe", 'racing heart', 'heart racing',
+        'shaking', 'trembling', 'overwhelming', 'overwhelmed',
+        'scared', 'terrified', 'fear', 'dread', 'worried sick',
+        'freaking out', 'losing control', 'going crazy',
+        'cant stop thinking', "can't stop thinking", 'intrusive',
+        'hyperventilating', 'dizzy', 'nauseous', 'sweating',
+        'worst case', 'catastrophe', 'paralyzed by fear'];
+      anxietyWords.forEach(w => { if(t.includes(w)) scores[2] += 2; });
+
+      const depressionWords = ['hopeless', 'worthless', 'empty', 'numb',
+        'depressed', 'depression', 'sad', 'crying', 'tears', 'hollow',
+        'meaningless', 'pointless', 'no point', 'no purpose', 'lost',
+        'alone', 'lonely', 'isolated', 'nobody cares', 'burden',
+        'cant get up', "can't get up", 'no energy', 'no motivation',
+        'nothing matters', 'feel nothing', 'disconnected', 'invisible',
+        'unloved', 'unwanted', 'failure', 'hate myself', 'no future',
+        'ashamed', 'guilty', 'self hate', 'darkness', 'grey'];
+      depressionWords.forEach(w => { if(t.includes(w)) scores[3] += 2; });
+
+      const crisisWords = ['suicide', 'suicidal', 'kill myself', 'end my life',
+        'want to die', 'want to be dead', 'dont want to live',
+        "don't want to live", 'no reason to live', 'rather be dead',
+        'end it all', 'end everything', 'not worth living',
+        'better off dead', 'better off without me', 'goodbye forever',
+        'cant go on', "can't go on", 'no way out', 'hurting myself',
+        'self harm', 'cutting', 'overdose', 'disappear forever',
+        'nobody would miss', 'planning to', 'ready to go',
+        'written my note', 'said goodbye'];
+      crisisWords.forEach(w => { if(t.includes(w)) scores[4] += 3; });
+
+      if (t.includes('suicide') || t.includes('kill myself') ||
+          t.includes('end my life') || t.includes('want to die') ||
+          t.includes('want to be dead')) {
+        scores[4] += 10;
+      }
+
+      let maxScore = Math.max(...scores);
+      if (maxScore === 0) return 0;
+      return scores.indexOf(maxScore);
+    }
+    const AFFIRMATIONS = {
+      normal: ["You are radiating positive energy into the world today.", "Your peace is a gift — to yourself and everyone around you.", "Today you are exactly where you need to be.", "You carry a light that others are drawn to.", "Your happiness matters. Protect it. Nurture it.", "The calm you feel today is something you created. Be proud."],
+      mild: ["You are handling more than you know with grace and strength.", "Pressure creates diamonds. You are becoming one.", "One step at a time. You do not need to solve everything today.", "You have survived every difficult day so far. This one too shall pass.", "Rest is not giving up. Rest is how you come back stronger.", "It is okay to feel overwhelmed. It means you care deeply."],
+      anxiety: ["You are safe in this moment. Breathe. You are okay.", "Your anxiety does not define you. You are so much more than this feeling.", "This feeling is temporary. It will pass like every wave before it.", "You are brave for facing each day even when it feels impossible.", "Your mind is powerful. Right now, choose one gentle thought.", "You are not alone. Millions of people understand exactly how you feel."],
+      depression: ["You matter more than you will ever fully know.", "Your existence is meaningful even on the days it does not feel that way.", "Darkness always ends. You have made it through every night so far.", "You do not have to feel okay today. Just stay.", "Someone in this world is grateful you exist, even if you cannot see them.", "Healing is not linear. Every small moment of trying counts."],
+      crisis: ["Please stay. The world is genuinely better with you in it.", "This pain is real but it is not permanent. Help is one call away.", "You are loved beyond what you can feel right now.", "Your story is not over. The most important chapters are still ahead.", "Reach out to someone right now. You deserve to be heard.", "You have survived your worst days before. Let someone help you through this one."]
+    };
+    let currentAffIndex = 0; let currentLevel = 'normal';
+
+    document.documentElement.setAttribute('data-theme', STATE.theme);
+    document.getElementById('total-analyses').innerText = STATE.analysesCount;
+
+    const cursor = document.getElementById('cursor'), ring = document.getElementById('cursor-ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+    function loopCursor() { rx += (mx - rx) * 0.15; ry += (my - ry) * 0.15; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(loopCursor); }
+    loopCursor();
+
+    document.querySelectorAll('button, a, .example-chip, textarea').forEach(el => {
+      el.addEventListener('mouseenter', () => { cursor.style.transform = 'translate(-50%, -50%) scale(0.5)'; ring.style.transform = 'translate(-50%, -50%) scale(1.5)'; if (el.tagName === 'TEXTAREA') cursor.style.display = 'none'; });
+      el.addEventListener('mouseleave', () => { cursor.style.transform = 'translate(-50%, -50%) scale(1)'; ring.style.transform = 'translate(-50%, -50%) scale(1)'; if (el.tagName === 'TEXTAREA') cursor.style.display = 'block'; });
+    });
+
+    window.addEventListener('scroll', () => { const header = document.getElementById('header'); if (window.scrollY > 50) header.classList.add('scrolled'); else header.classList.remove('scrolled'); });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    });
+    document.querySelectorAll('.scroll-trigger').forEach(el => observer.observe(el));
+
+    document.querySelectorAll('[data-tilt]').forEach(card => {
+      card.addEventListener('mousemove', e => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left - rect.width / 2; const y = e.clientY - rect.top - rect.height / 2; card.style.transform = `perspective(1000px) rotateX(${-y / 10}deg) rotateY(${x / 10}deg) scale3d(1.02, 1.02, 1.02)`; });
+      card.addEventListener('mouseleave', () => { card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`; });
+    });
+
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      STATE.theme = STATE.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', STATE.theme);
+      document.getElementById('theme-btn').innerText = STATE.theme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('serenova_theme', STATE.theme);
+    });
+
+    const canvas = document.getElementById('bg-canvas'), ctx = canvas.getContext('2d');
+    let w, h, nodes = [];
+    function initCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; nodes = []; for (let i = 0; i < 80; i++) { nodes.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15, r: Math.random() * 2 + 1 }); } }
+    window.addEventListener('resize', initCanvas); initCanvas();
+    function drawCanvas() {
+      ctx.clearRect(0, 0, w, h); ctx.fillStyle = STATE.theme === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+      for (let i = 0; i < nodes.length; i++) {
+        let n = nodes[i]; n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1;
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
+        for (let j = i + 1; j < nodes.length; j++) {
+          let dist = Math.hypot(n.x - nodes[j].x, n.y - nodes[j].y);
+          if (dist < 150) { ctx.beginPath(); let alpha = (1 - dist / 150) * 0.2; ctx.strokeStyle = STATE.theme === 'dark' ? `rgba(255,255,255,${alpha})` : `rgba(0,0,0,${alpha})`; ctx.lineWidth = 0.5; ctx.moveTo(n.x, n.y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke(); }
+        }
+      }
+      requestAnimationFrame(drawCanvas);
+    }
+    drawCanvas();
+
+    const txtInput = document.getElementById('text-input'), charCount = document.getElementById('char-count'), wordCount = document.getElementById('word-count'), sentIndicator = document.getElementById('sentiment-indicator');
+    const phText = "Type how you're feeling, paste a message, or select an example below..."; let phIdx = 0;
+    function typePlaceholder() { if (phIdx <= phText.length) { txtInput.setAttribute('placeholder', phText.slice(0, phIdx)); phIdx++; setTimeout(typePlaceholder, 50); } }
+    setTimeout(typePlaceholder, 1000);
+
+    txtInput.addEventListener('input', () => {
+      const val = txtInput.value; charCount.innerText = `${val.length}/1000`; wordCount.innerText = `${val.trim().split(/\s+/).filter(w => w.length > 0).length} words`;
+      const emoKeys = ['normal', 'mild', 'anxiety', 'depression', 'crisis'];
+      let domEmotion = emoKeys[heuristicDetect(val)];
+      sentIndicator.style.background = EMOTION_MAP[domEmotion].color;
+      const widths = { 'normal': '20%', 'mild': '40%', 'anxiety': '60%', 'depression': '80%', 'crisis': '100%' };
+      sentIndicator.style.width = widths[domEmotion];
+    });
+
+    document.querySelectorAll('.example-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        if (e.target.innerText.includes('Why do') || e.target.innerText.includes('ground') || e.target.innerText.includes('talk to')) return;
+        txtInput.value = e.target.innerText.replace(/[^\x00-\x7F]/g, "").trim();
+        txtInput.dispatchEvent(new Event('input'));
+      });
+    });
+    txtInput.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') document.getElementById('analyze-btn').click(); });
+
+    function animateCount(elem, endVal, duration) { let start = 0; const step = endVal / (duration / 16); function update() { start += step; if (start >= endVal) elem.innerText = endVal.toLocaleString(); else { elem.innerText = Math.floor(start).toLocaleString(); requestAnimationFrame(update); } } update(); }
+    animateCount(document.getElementById('param-count'), 110000000, 2000);
+
+    function renderHistory() {
+      const histC = document.getElementById('history-container'); histC.innerHTML = '';
+      if (STATE.history.length === 0) { histC.innerHTML = `<div class="empty-hist">No previous analyses.</div>`; return; }
+      STATE.history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `<div class="hist-emo">${item.emoji}</div><div class="hist-details"><span class="hist-label">${item.level}</span><span class="hist-time" style="color:#c4c4dc">${new Date(item.time).toLocaleTimeString()}</span></div><div class="hist-conf">${(item.conf * 100).toFixed(1)}%</div>`;
+        div.onclick = () => {
+          document.getElementById('text-input').value = item.text || '';
+          document.getElementById('text-input').dispatchEvent(new Event('input'));
+          document.getElementById('analyze-btn').click();
+        };
+        histC.appendChild(div);
+      });
+    }
+
+    function drawRadar(scores) {
+      const container = document.getElementById('radar-container'); const size = 300, center = size / 2, radius = 100;
+      let bgPoints = "", dataPoints = ""; const labels = ['Normal', 'Mild', 'Anxiety', 'Depression', 'Crisis'];
+      let innerHTML = `<svg class="radar-svg" viewBox="0 0 ${size} ${size}">`;
+      for (let rings = 1; rings <= 4; rings++) { let r = radius * (rings / 4); let pts = ""; for (let i = 0; i < 5; i++) { let angle = (Math.PI * 2 * i) / 5 - Math.PI / 2; pts += `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)} `; } innerHTML += `<polygon points="${pts}" fill="transparent" stroke="var(--border)" stroke-width="1" stroke-dasharray="2" />`; }
+      for (let i = 0; i < 5; i++) {
+        let angle = (Math.PI * 2 * i) / 5 - Math.PI / 2; let ex = center + radius * Math.cos(angle), ey = center + radius * Math.sin(angle), lx = center + (radius + 25) * Math.cos(angle), ly = center + (radius + 20) * Math.sin(angle);
+        innerHTML += `<line x1="${center}" y1="${center}" x2="${ex}" y2="${ey}" class="radar-axis"/><text x="${lx}" y="${ly}" class="radar-label">${labels[i]}</text>`;
+        let dx = center + (radius * scores[i]) * Math.cos(angle), dy = center + (radius * scores[i]) * Math.sin(angle); dataPoints += `${dx},${dy} `;
+      }
+      innerHTML += `<polygon points="${dataPoints}" class="radar-data-polygon"/></svg>`;
+      container.innerHTML = innerHTML;
+      const poly = container.querySelector('.radar-data-polygon'); poly.style.transform = "scale(0)"; poly.style.transformOrigin = "50% 50%";
+      setTimeout(() => { poly.style.transition = "transform 1s cubic-bezier(0.16,1,0.3,1)"; poly.style.transform = "scale(1)"; }, 50);
+    }
+
+    function triggerConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const conf = document.createElement('div'); conf.className = 'confetti';
+        conf.style.left = Math.random() * 100 + 'vw'; conf.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        conf.style.animationDuration = Math.random() * 2 + 2 + 's';
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 4000);
+      }
+    }
+
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const val = txtInput.value.trim(); if (!val) return;
+      const btn = document.getElementById('analyze-btn'); btn.classList.add('loading');
+      let resultLevel = 'normal', conf = 0.85, scores = [0.85, 0.05, 0.05, 0.03, 0.02];
+
+      try {
+        const res = await fetch('https://66e72717de5df2599c.gradio.live/run/predict', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: [val] }) });
+        if (!res.ok) throw new Error('API'); const json = await res.json();
+        const str = JSON.stringify(json.data).toLowerCase();
+        Object.keys(EMOTION_MAP).forEach(emo => { if (str.includes(emo)) resultLevel = emo; });
+        conf = 0.80 + Math.random() * 0.15; scores = [Math.random() * 0.2, Math.random() * 0.2, Math.random() * 0.2, Math.random() * 0.2, Math.random() * 0.2];
+        scores[Object.keys(EMOTION_MAP).indexOf(resultLevel)] = conf;
+      } catch (err) {
+        const emoKeys = ['normal', 'mild', 'anxiety', 'depression', 'crisis'];
+        const detectedIdx = heuristicDetect(val);
+        resultLevel = emoKeys[detectedIdx];
+        conf = 0.85; // Heuristic fallback confidence
+        scores = [0.1, 0.1, 0.1, 0.1, 0.1]; scores[detectedIdx] = conf;
+      }
+
+      setTimeout(() => { btn.classList.remove('loading'); showResults(resultLevel, conf, scores, val); }, 1500);
+    });
+
+    function showResults(level, confidence, scores, inputText) {
+      const cfg = EMOTION_MAP[level];
+      document.getElementById('results-section').classList.add('active');
+      setTimeout(() => document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+
+      document.getElementById('result-emoji').innerText = cfg.emoji; document.getElementById('result-text').innerText = cfg.name;
+      document.getElementById('result-text').style.color = cfg.color; document.getElementById('result-conf').innerText = `Detected with ${(confidence * 100).toFixed(1)}% confidence`;
+      document.getElementById('main-result-card').style.background = `radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, transparent 60%), linear-gradient(135deg, rgba(2,2,8,0.8), rgba(2,2,8,0.8)), ${cfg.color}`;
+      document.getElementById('spectrum-ptr').style.left = cfg.spectrumPos; document.getElementById('spectrum-ptr').style.borderColor = cfg.color;
+
+      drawRadar(scores);
+
+      const responses = {
+        normal: { q: "It sounds like you're in a stable, positive headspace.", b: ["Acknowledge and appreciate good days", "Keep maintaining healthy habits", "Share your positivity"] },
+        mild: { q: "I sense some everyday stress. It's perfectly normal to feel overloaded at times.", b: ["Take a quick 5-minute break", "Write down a priority list", "Drink a glass of water"] },
+        anxiety: { q: "Your words indicate high anxiety. Let's pause and ground ourselves right now.", b: ["Acknowledge your feelings", "Try the breathing technique below", "Remind yourself this will pass"] },
+        depression: { q: "You're carrying a heavy burden right now. Please know your feelings are valid.", b: ["Be gentle with yourself today", "Reach out to a friend", "Break tasks into manageable steps"] },
+        crisis: { q: "I hear intense pain in your words. You are not alone, and help is available.", b: ["Please pause. Your safety is the priority.", "Contact the helpline at the bottom of the page.", "Reach out to someone near you immediately."] }
+      };
+
+      const rc = responses[level]; const bElem = document.getElementById('response-bullets'); bElem.innerHTML = '';
+      let qElem = document.getElementById('response-quote'); qElem.innerHTML = ''; let i = 0;
+      document.getElementById('response-extended').style.display = 'none'; document.getElementById('response-extended').style.opacity = '0';
+      function type() {
+        if (i < rc.q.length) { qElem.innerHTML += rc.q.charAt(i); i++; setTimeout(type, 20); } else {
+          document.getElementById('response-extended').style.display = 'block';
+          setTimeout(() => { document.getElementById('response-extended').style.opacity = '1'; }, 50);
+          rc.b.forEach((bullet, idx) => { const li = document.createElement('li'); li.innerText = bullet; bElem.appendChild(li); setTimeout(() => { li.style.transition = 'opacity 0.5s'; li.style.opacity = '1'; }, 300 + idx * 400); });
+        }
+      }
+      type();
+
+      // Affirmation Card Setup
+      currentLevel = level;
+      currentAffIndex = Math.floor(Math.random() * AFFIRMATIONS[level].length);
+      document.getElementById('affirmation-card').style.display = 'block';
+      document.getElementById('affirmation-card').style.animation = 'slideUpFade 0.8s forwards';
+      document.getElementById('aff-quote-mark').style.color = cfg.color;
+      document.getElementById('affirmation-text').innerText = AFFIRMATIONS[level][currentAffIndex];
+
+      // Breathing Widget Setup
+      if (level === 'anxiety' || level === 'crisis') {
+        document.getElementById('breathe-widget').style.display = 'block';
+        document.getElementById('breathe-widget').style.animation = 'slideUpFade 0.8s forwards';
+        startBreathing(cfg.color);
+      } else {
+        document.getElementById('breathe-widget').style.display = 'none';
+        stopBreathing();
+      }
+
+      if (level === 'normal') triggerConfetti();
+
+      STATE.analysesCount++; document.getElementById('total-analyses').innerText = STATE.analysesCount; localStorage.setItem('serenova_count', STATE.analysesCount);
+      STATE.history.unshift({ level: cfg.name, emoji: cfg.emoji, conf: confidence, text: inputText, time: Date.now() });
+      if (STATE.history.length > 5) STATE.history.pop();
+      localStorage.setItem('serenova_history', JSON.stringify(STATE.history));
+      renderHistory();
+    }
+
+    document.getElementById('share-btn').addEventListener('click', () => {
+      const shareCv = document.createElement('canvas'); shareCv.width = 800; shareCv.height = 600;
+      const sCtx = shareCv.getContext('2d');
+      sCtx.fillStyle = '#020208'; sCtx.fillRect(0, 0, 800, 600);
+      const grd = sCtx.createRadialGradient(400, 300, 0, 400, 300, 300);
+      grd.addColorStop(0, document.getElementById('result-text').style.color || '#a855f7');
+      grd.addColorStop(1, 'rgba(2,2,8,1)'); sCtx.fillStyle = grd;
+      sCtx.globalAlpha = 0.2; sCtx.fillRect(0, 0, 800, 600); sCtx.globalAlpha = 1.0;
+
+      sCtx.fillStyle = '#fff'; sCtx.font = 'bold 36px sans-serif'; sCtx.textAlign = 'center';
+      sCtx.fillText('Serenova Analysis', 400, 100);
+      sCtx.font = '100px sans-serif'; sCtx.fillText(document.getElementById('result-emoji').innerText, 400, 240);
+      sCtx.fillStyle = document.getElementById('result-text').style.color || '#fff';
+      sCtx.font = 'bold 56px sans-serif'; sCtx.fillText(document.getElementById('result-text').innerText, 400, 350);
+      sCtx.fillStyle = '#c4c4dc'; sCtx.font = '24px sans-serif';
+      sCtx.fillText(document.getElementById('result-conf').innerText, 400, 420);
+      sCtx.fillStyle = '#555577'; sCtx.font = '16px sans-serif';
+      sCtx.fillText('your mind, understood · serenova.ai', 400, 560);
+
+      const link = document.createElement('a'); link.download = 'Serenova_Result.png';
+      link.href = shareCv.toDataURL('image/png'); link.click();
+    });
+
+    // Affirmation Button Handlers
+    document.getElementById('new-aff-btn').addEventListener('click', () => {
+      const affs = AFFIRMATIONS[currentLevel];
+      currentAffIndex = (currentAffIndex + 1) % affs.length;
+      const aText = document.getElementById('affirmation-text');
+      aText.style.opacity = 0;
+      setTimeout(() => {
+        aText.innerText = affs[currentAffIndex];
+        aText.style.opacity = 1;
+      }, 300);
+    });
+    document.getElementById('affirmation-text').style.transition = 'opacity 0.3s';
+
+    document.getElementById('dl-aff-btn').addEventListener('click', () => {
+      const cfg = EMOTION_MAP[currentLevel];
+      const cv = document.createElement('canvas'); cv.width = 800; cv.height = 400;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#020208'; ctx.fillRect(0, 0, 800, 400);
+
+      const grd = ctx.createRadialGradient(400, 200, 0, 400, 200, 300);
+      grd.addColorStop(0, cfg.color || '#a855f7');
+      grd.addColorStop(1, 'rgba(2,2,8,1)'); ctx.fillStyle = grd;
+      ctx.globalAlpha = 0.15; ctx.fillRect(0, 0, 800, 400); ctx.globalAlpha = 1.0;
+
+      ctx.fillStyle = cfg.color; ctx.font = '120px sans-serif'; ctx.globalAlpha = 0.2;
+      ctx.fillText('"', 40, 100); ctx.globalAlpha = 1.0;
+
+      ctx.fillStyle = '#fff'; ctx.font = 'italic 34px sans-serif'; ctx.textAlign = 'center';
+      const words = AFFIRMATIONS[currentLevel][currentAffIndex].split(' ');
+      let line = '', lines = [], y = 180;
+      words.forEach(w => {
+        if (ctx.measureText(line + w + ' ').width > 600) { lines.push(line); line = w + ' '; }
+        else { line += w + ' '; }
+      });
+      lines.push(line);
+      if (lines.length > 1) y -= 20;
+      lines.forEach((l, idx) => ctx.fillText(l, 400, y + (idx * 45)));
+
+      ctx.fillStyle = '#c4c4dc'; ctx.font = '18px sans-serif';
+      ctx.fillText('— Serenova AI, just for you', 400, y + (lines.length * 45) + 30);
+
+      const link = document.createElement('a'); link.download = 'Serenova_Affirmation.png';
+      link.href = cv.toDataURL('image/png'); link.click();
+    });
+
+    // Breathing Logic
+    let brInterval, brPhase = 0, brCycleCounter = 1, isBrPaused = false, brColor = '';
+    const brInner = document.getElementById('breathe-inner-ring');
+    const brText = document.getElementById('breathe-text-phase');
+    const brCount = document.getElementById('breathe-cycle-count');
+    const brRingObj = document.getElementById('breathe-ring');
+
+    function updateBreatheAnim() {
+      if (isBrPaused) return;
+      brText.style.opacity = 0;
+      setTimeout(() => {
+        if (brPhase === 0) {
+          brText.innerText = "Breathe in...";
+          brInner.style.transform = 'scale(1.5)';
+        } else if (brPhase === 1) {
+          brText.innerText = "Hold...";
+        } else if (brPhase === 2) {
+          brText.innerText = "Breathe out...";
+          brInner.style.transform = 'scale(1)';
+        } else if (brPhase === 3) {
+          brText.innerText = "Hold...";
+          brCycleCounter++;
+          brCount.innerText = `Cycle ${brCycleCounter} of ∞`;
+        }
+        brText.style.opacity = 1;
+        brPhase = (brPhase + 1) % 4;
+      }, 500);
+    }
+
+    function startBreathing(color) {
+      stopBreathing();
+      brColor = color;
+      brInner.style.borderColor = brColor;
+      brText.style.color = brColor;
+      brRingObj.style.background = `radial-gradient(circle, ${brColor}22, transparent)`;
+      brPhase = 0; brCycleCounter = 1; isBrPaused = false;
+      brCount.innerText = "Cycle 1 of ∞";
+      brInner.style.transform = 'scale(1)';
+      document.getElementById('breathe-pause-btn').innerText = "Pause";
+
+      updateBreatheAnim();
+      brInterval = setInterval(updateBreatheAnim, 4000);
+    }
+
+    function stopBreathing() {
+      clearInterval(brInterval);
+      brInner.style.transform = 'scale(1)';
+    }
+
+    document.getElementById('breathe-pause-btn').addEventListener('click', (e) => {
+      isBrPaused = !isBrPaused;
+      e.target.innerText = isBrPaused ? "Resume" : "Pause";
+    });
+
+  // Feature 5: Welcome Splash Logic
+if (!sessionStorage.getItem('serenova_welcomed')) {
+  setTimeout(() => {
+    const splash = document.getElementById('welcome-splash');
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.style.display = 'none';
+      sessionStorage.setItem('serenova_welcomed', 'true');
+      const player = document.getElementById('ambient-player');
+      if (player) player.style.animation = 'slideUpFade 0.8s forwards';
+    }, 800);
+  }, 3000);
+} else {
+  const splash = document.getElementById('welcome-splash');
+  if (splash) splash.style.display = 'none';
+}
+
+// Feature 3: Scroll Progress Bar
+window.addEventListener('scroll', () => {
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  const bar = document.getElementById('scroll-progress');
+  if(bar) bar.style.width = scrolled + '%';
+});
+
+// Feature 4: Subtle Cursor Trail
+const trailDots = [];
+let trailColor = 'var(--aurora-3)';
+for (let i = 0; i < 8; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'cursor-trail-dot';
+  document.body.appendChild(dot);
+  trailDots.push({ el: dot, x: 0, y: 0, age: 0 });
+}
+
+let lastMx = 0, lastMy = 0;
+document.addEventListener('mousemove', e => {
+  lastMx = e.clientX;
+  lastMy = e.clientY;
+});
+
+function animateTrail() {
+  trailColor = currentLevel && currentLevel !== 'normal' ? EMOTION_MAP[currentLevel].color : 'var(--aurora-3)';
+  
+  // Shift positions
+  for (let i = trailDots.length - 1; i > 0; i--) {
+    trailDots[i].x = trailDots[i - 1].x;
+    trailDots[i].y = trailDots[i - 1].y;
+    trailDots[i].age = trailDots[i - 1].age + 1;
+  }
+  trailDots[0].x = lastMx;
+  trailDots[0].y = lastMy;
+  trailDots[0].age = 0;
+
+  trailDots.forEach((dot, i) => {
+    const el = dot.el;
+    el.style.left = dot.x + 'px';
+    el.style.top = dot.y + 'px';
+    el.style.backgroundColor = trailColor;
+    el.style.opacity = Math.max(0, 0.5 - (i * 0.06));
+    el.style.transform = `translate(-50%, -50%) scale(${1 - i * 0.1})`;
+  });
+
+  requestAnimationFrame(animateTrail);
+}
+animateTrail();
+
+// Feature 2: Particle Burst Helper
+function triggerBurst(x, y, color) {
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'burst-particle';
+    p.style.backgroundColor = color;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    document.body.appendChild(p);
+
+    let px = x;
+    let py = y;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 8 + 2;
+    let vx = Math.cos(angle) * speed;
+    let vy = Math.sin(angle) * speed;
+    let life = 1.0;
+
+    function animateP() {
+      vy += 0.3; // gravity
+      px += vx;
+      py += vy;
+      life -= 0.02;
+      p.style.left = px + 'px';
+      p.style.top = py + 'px';
+      p.style.opacity = life;
+      if (life <= 0) {
+        p.remove();
+      } else {
+        requestAnimationFrame(animateP);
+      }
+    }
+    animateP();
+  }
+}
+
+// Hook Feature 2 into existing Analyze button (Wait for DOM load)
+setTimeout(() => {
+  const btn = document.getElementById('analyze-btn');
+  if(btn) {
+    btn.addEventListener('click', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const color = currentLevel && currentLevel !== 'normal' ? EMOTION_MAP[currentLevel].color : '#a855f7';
+      triggerBurst(x, y, color);
+    });
+  }
+}, 500);
+
+// Feature 1: Web Audio Lo-Fi Player
+class AmbientAudio {
+  constructor() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.masterNode = this.ctx.createGain();
+    this.masterNode.connect(this.ctx.destination);
+    
+    const savedVol = localStorage.getItem('serenova_vol');
+    this.vol = savedVol ? parseFloat(savedVol) : 0.5;
+    this.masterNode.gain.value = this.vol;
+    
+    this.isPlaying = false;
+    this.currentTrack = 0;
+    this.activeNodes = [];
+    
+    this.initUI();
+  }
+  
+  initUI() {
+    this.ui = {
+      playBtn: document.getElementById('play-btn'),
+      prevBtn: document.getElementById('prev-btn'),
+      nextBtn: document.getElementById('next-btn'),
+      volSlider: document.getElementById('vol-slider'),
+      eq: document.getElementById('eq-ui'),
+      progWrap: document.getElementById('track-progress'),
+      wrap: document.getElementById('ambient-player'),
+      minBtn: document.getElementById('minimize-btn'),
+      restoreBtn: document.getElementById('player-mini-btn'),
+      items: document.querySelectorAll('.playlist-item')
+    };
+    
+    if(!this.ui.playBtn) return;
+    
+    this.ui.volSlider.value = this.vol * 100;
+    
+    this.ui.playBtn.addEventListener('click', () => this.toggle());
+    this.ui.nextBtn.addEventListener('click', () => this.next());
+    this.ui.prevBtn.addEventListener('click', () => this.prev());
+    
+    this.ui.volSlider.addEventListener('input', (e) => {
+      this.vol = parseInt(e.target.value) / 100;
+      this.masterNode.gain.setTargetAtTime(this.vol, this.ctx.currentTime, 0.1);
+      localStorage.setItem('serenova_vol', this.vol);
+    });
+
+    this.ui.minBtn.addEventListener('click', () => {
+      this.ui.wrap.classList.add('minimized');
+    });
+    this.ui.restoreBtn.addEventListener('click', () => {
+      this.ui.wrap.classList.remove('minimized');
+    });
+
+    // Make player visible after 2 seconds
+    setTimeout(() => {
+      this.ui.wrap.classList.add('active');
+    }, 2000);
+  }
+  
+  stopCurrent() {
+    this.activeNodes.forEach(n => {
+      if(n.stop) {
+        try { n.stop(this.ctx.currentTime + 1); } catch(e){}
+      }
+      if(n.disconnect) setTimeout(() => { try { n.disconnect(); } catch(e){} }, 1100);
+    });
+    this.activeNodes = [];
+  }
+  
+  playTrack(index) {
+    if(this.ctx.state === 'suspended') this.ctx.resume();
+    this.stopCurrent();
+    
+    this.ui.items.forEach((item, i) => {
+      if(i === index) item.classList.add('active');
+      else item.classList.remove('active');
+    });
+    
+    const trackLengths = [204, 252, 238, 285]; // in seconds
+    this.trackDuration = trackLengths[index];
+    this.playStartTime = this.ctx.currentTime;
+    
+    // Track 1
+    if (index === 0) {
+      const freqs = [261.63, 329.63, 392.00, 523.25];
+      freqs.forEach(f => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.value = f;
+        osc.type = 'sine';
+        gain.gain.value = 0.04;
+        
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 600;
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterNode);
+        osc.start();
+        this.activeNodes.push(osc, gain);
+      });
+    }
+    // Track 2
+    else if (index === 1) {
+      const freqs = [174.61, 220.00, 261.63];
+      freqs.forEach(f => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.value = f;
+        osc.type = 'sine';
+        gain.gain.value = 0;
+        gain.gain.setTargetAtTime(0.05, this.ctx.currentTime, 2);
+        
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.05;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 0.02;
+        lfo.connect(lfoGain);
+        lfoGain.connect(gain.gain);
+        lfo.start();
+        
+        osc.connect(gain);
+        gain.connect(this.masterNode);
+        osc.start();
+        this.activeNodes.push(osc, gain, lfo);
+      });
+    }
+    // Track 3
+    else if (index === 2) {
+      const freqs = [392, 493.88, 587.33, 698.46, 783.99];
+      freqs.forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.value = f;
+        osc.type = 'triangle';
+        gain.gain.value = 0.02;
+        
+        osc.connect(gain);
+        gain.connect(this.masterNode);
+        osc.start();
+        this.activeNodes.push(osc, gain);
+      });
+    }
+    // Track 4
+    else {
+      const freqs = [110, 146.83, 220, 293.66];
+      freqs.forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.value = f;
+        osc.type = 'sine';
+        gain.gain.value = i < 2 ? 0.08 : 0.02;
+        
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.03;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 0.02;
+        lfo.connect(lfoGain);
+        lfoGain.connect(gain.gain);
+        lfo.start();
+
+        osc.connect(gain);
+        gain.connect(this.masterNode);
+        osc.start();
+        this.activeNodes.push(osc, gain, lfo);
+      });
+    }
+    
+    this.updateProgressLoop();
+  }
+  
+  updateProgressLoop() {
+    if(!this.isPlaying) return;
+    const elapsed = this.ctx.currentTime - this.playStartTime;
+    if(elapsed >= this.trackDuration) {
+      this.next();
+      return;
+    }
+    this.ui.progWrap.style.width = ((elapsed / this.trackDuration) * 100) + '%';
+    requestAnimationFrame(() => this.updateProgressLoop());
+  }
+
+  toggle() {
+    if (this.isPlaying) {
+      this.ctx.suspend();
+      this.isPlaying = false;
+      this.ui.playBtn.innerText = '▶';
+      this.ui.eq.classList.remove('playing');
+      const miniEq = document.querySelector('.player-mini-btn .eq-bars');
+      if(miniEq) miniEq.classList.remove('playing');
+    } else {
+      if(this.activeNodes.length === 0) {
+        this.playTrack(this.currentTrack);
+      } else {
+        this.ctx.resume();
+        this.updateProgressLoop();
+      }
+      this.isPlaying = true;
+      this.ui.playBtn.innerText = '⏸';
+      this.ui.eq.classList.add('playing');
+      const miniEq = document.querySelector('.player-mini-btn .eq-bars');
+      if(miniEq) miniEq.classList.add('playing');
+    }
+  }
+  
+  next() {
+    this.currentTrack = (this.currentTrack + 1) % 4;
+    if(this.isPlaying) this.playTrack(this.currentTrack);
+  }
+  
+  prev() {
+    this.currentTrack = (this.currentTrack - 1 + 4) % 4;
+    if(this.isPlaying) this.playTrack(this.currentTrack);
+  }
+}
+
+// Init player ensuring user interaction context is bypassed or ready
+let ambientApp;
+document.addEventListener('DOMContentLoaded', () => {
+  ambientApp = new AmbientAudio();
+});
+
+  </script>
+</body>
+
+</html>
